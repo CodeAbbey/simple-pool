@@ -131,7 +131,6 @@ function checkCollision(a, b) {
     if (dist >= 2 * rad) {
         return;
     }
-    console.log('collision');
     var c = {vx: (a.vx + b.vx) / 2, vy: (a.vy + b.vy) / 2};
     var ux = a.vx - c.vx;
     var uy = a.vy - c.vy;
