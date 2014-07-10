@@ -3,7 +3,6 @@ var nBalls = 7;
 var cue = null;
 var dt = 0.2;
 var rad = 15;
-var border = 5;
 var cueLength = 70;
 var maxSpeed = 120;
 var minSpeed = 1;
@@ -11,7 +10,8 @@ var slowDown = 5;
 var delta = 20;
 var moving = false;
 var winW = 500, winH = 250;
-var colors = {table: '#004000', ballStroke: '#005000', ballFill: '#004000', cue: '808000'};
+var logTimings = false;
+var colors = {table: '#004000', ballStroke: '#005000', ballFill: '#004000', cue: '#808000'};
 
 function lineRel(x1, y1, dx, dy) {
     lineRel(x1, y1, x1 + dx, y1 + dy);
@@ -37,8 +37,12 @@ function hypot(x, y) {
     return Math.sqrt(x * x + y * y);
 }
 
-function posFromEvent(event) {
-    return {x: event.offsetX - border, y: event.offsetY - border};
+function posFromEvent(e) {
+    var e = e || window.event;
+    var cnv = getCanvas();
+    var offsetX = e.pageX - cnv.clientLeft - cnv.offsetLeft;
+    var offsetY = e.pageY - cnv.clientTop - cnv.offsetTop;
+    return {x: offsetX, y: offsetY};
 }
 
 function draw() {
@@ -48,12 +52,12 @@ function draw() {
     ctx.fillStyle = colors.ballFill;
     ctx.lineWidth = 1;
     for (var i in balls) {
-        circle(balls[i].x, balls[i].y, rad);
+        circle(Math.round(balls[i].x), Math.round(balls[i].y), rad);
     }
     if (cue != null) {
         ctx.lineWidth = 2;
         ctx.strokeStyle = colors.cue;
-        line(cue.x, cue.y, cue.x2, cue.y2);
+        line(Math.round(cue.x), Math.round(cue.y), Math.round(cue.x2), Math.round(cue.y2));
     }
 }
 
@@ -80,8 +84,14 @@ function findBall(x, y, r) {
 }
 
 function onTimer() {
+    var t0 = Date.now();
     recalc();
+    var t1 = Date.now();
     draw();
+    var t2 = Date.now();
+    if (logTimings) {
+        console.log('Recalc: ' + (t1 - t0) + ', Redraw: ' + (t2 - t1));
+    }
 }
 
 function recalc() {
@@ -212,12 +222,14 @@ function onMouseMove(event) {
 function setupGeometry(canvas) {
     winW = canvas.width;
     winH = canvas.height;
-    rect = canvas.getBoundingClientRect();
-    border = (rect.width - winW) / 2;
+}
+
+function getCanvas() {
+    return document.getElementById('demo');
 }
 
 function poolInit() {
-    var canvas = document.getElementById('demo');
+    var canvas = getCanvas();
     setupGeometry(canvas);
     if (typeof(overrideSettings) != 'undefined') {
         overrideSettings();
